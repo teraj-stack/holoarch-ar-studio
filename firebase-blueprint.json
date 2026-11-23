@@ -1,0 +1,101 @@
+{
+  "entities": {
+    "ARProject": {
+      "title": "ARProject",
+      "description": "Stores 3D architectural hologram configurations and spatial agent scenes for HoloArch AR Studio.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the project creator",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable name of the AR architectural project",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "sceneId": {
+          "type": "string",
+          "description": "Selected 3D architectural scene ID",
+          "enum": [
+            "skyline_financial",
+            "eco_atrium",
+            "aero_hub",
+            "crystal_stacked_prism",
+            "voronoi_bionic_spire",
+            "kinetic_calatrava_wing",
+            "hydro_aqua_sculpture"
+          ],
+          "minLength": 3,
+          "maxLength": 40
+        },
+        "framework": {
+          "type": "string",
+          "description": "Target AR framework",
+          "enum": ["unity_arfoundation", "arkit_native", "arcore_native"],
+          "minLength": 3,
+          "maxLength": 40
+        },
+        "modelScale": {
+          "type": "number",
+          "description": "Scale factor of the 3D hologram"
+        },
+        "lightTemperatureK": {
+          "type": "number",
+          "description": "Environmental lighting temperature in Kelvin"
+        },
+        "palette": {
+          "type": "string",
+          "description": "Shader color palette",
+          "enum": [
+            "cyan_blueprint",
+            "amber_gold",
+            "emerald_matrix",
+            "platinum_arch",
+            "violet_quantum"
+          ],
+          "minLength": 3,
+          "maxLength": 40
+        },
+        "driveFileId": {
+          "type": "string",
+          "description": "Optional linked Google Drive file ID",
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when last updated"
+        }
+      },
+      "required": [
+        "ownerId",
+        "name",
+        "sceneId",
+        "framework",
+        "modelScale",
+        "lightTemperatureK",
+        "palette",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": {
+        "$ref": "#/entities/ARProject"
+      },
+      "description": "Collection of user-owned 3D AR architectural projects."
+    }
+  }
+}

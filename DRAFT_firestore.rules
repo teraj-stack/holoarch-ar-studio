@@ -1,0 +1,140 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 4.1: Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Hardened Global Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'mlasers0110@gmail.com'
+      );
+    }
+
+    // Pillar 2: Validation Blueprint for ARProject (matches firebase-blueprint.json)
+    function isValidARProject(data) {
+      return data.keys().hasAll([
+          'ownerId',
+          'name',
+          'sceneId',
+          'framework',
+          'modelScale',
+          'lightTemperatureK',
+          'palette',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerId',
+          'name',
+          'sceneId',
+          'framework',
+          'modelScale',
+          'lightTemperatureK',
+          'palette',
+          'driveFileId',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.ownerId is string &&
+        data.ownerId.size() >= 1 &&
+        data.ownerId.size() <= 128 &&
+        data.ownerId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.ownerId == request.auth.uid &&
+        data.name is string &&
+        data.name.size() >= 1 &&
+        data.name.size() <= 120 &&
+        data.sceneId is string &&
+        data.sceneId.size() >= 3 &&
+        data.sceneId.size() <= 40 &&
+        data.sceneId in ['skyline_financial', 'eco_atrium', 'aero_hub'] &&
+        data.framework is string &&
+        data.framework.size() >= 3 &&
+        data.framework.size() <= 40 &&
+        data.framework in ['unity_arfoundation', 'arkit_native', 'arcore_native'] &&
+        data.modelScale is number &&
+        data.modelScale >= 0.1 &&
+        data.modelScale <= 10.0 &&
+        data.lightTemperatureK is number &&
+        data.lightTemperatureK >= 1000 &&
+        data.lightTemperatureK <= 12000 &&
+        data.palette is string &&
+        data.palette.size() >= 3 &&
+        data.palette.size() <= 40 &&
+        data.palette in ['cyan_blueprint', 'amber_gold', 'emerald_matrix', 'violet_quantum'] &&
+        (!('driveFileId' in data) || (data.driveFileId is string && data.driveFileId.size() <= 128)) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    // Connection validation probe path
+    match /test/{docId} {
+      allow get: if isValidId(docId);
+      allow list, write: if false;
+    }
+
+    // Admins lookup collection
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && isValidId(adminId) && request.auth.uid == adminId;
+      allow list, write: if false;
+    }
+
+    // User-owned 3D AR Architectural Projects
+    match /projects/{projectId} {
+      allow get: if isSignedIn() && isValidId(projectId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin());
+
+      allow create: if isVerifiedUser() &&
+        isValidId(projectId) &&
+        isValidARProject(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser() &&
+        isValidId(projectId) &&
+        isValidARProject(incoming()) &&
+        (existing().ownerId == request.auth.uid || isAdmin()) &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'name',
+          'sceneId',
+          'framework',
+          'modelScale',
+          'lightTemperatureK',
+          'palette',
+          'driveFileId',
+          'updatedAt'
+        ]);
+
+      allow delete: if isVerifiedUser() &&
+        isValidId(projectId) &&
+        (existing().ownerId == request.auth.uid || isAdmin());
+    }
+  }
+}

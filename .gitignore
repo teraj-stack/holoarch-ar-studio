@@ -1,0 +1,22 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Antigravity GitHub sync ignores
+.env
+.env.local
+.env.*.local
+.next/
+out/
+.venv/
+__pycache__/
+release/
+*.app/
+*.tsbuildinfo
+**/.env
+**/.env.local

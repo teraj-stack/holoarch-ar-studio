@@ -1,0 +1,6 @@
+{
+  "name": "HoloArch AR Studio — Generator Promptów i Symulator Hologramów 3D",
+  "description": "Studio inżynierii promptów oraz interaktywny symulator architektonicznych hologramów 3D/AR (Unity ARKit/ARCore) z detekcją płaszczyzn, paralaksą, eksportem OBJ/STL/PDF i bazą wspieranych urządzeń.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
